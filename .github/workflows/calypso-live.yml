@@ -36,9 +36,13 @@ jobs:
 
       - name: Fetch link
         uses: fjogeleit/http-request-action@v1.8.0
+        id: fetch_link
         with:
           url: '${{ steps.build_link.outputs.LINK }}'
           method: 'GET'
           timeout: '120'
           preventFailureOnNoResponse: true
           ignoreStatusCodes: '400,401'
+
+      - name: Show Response
+        run: echo ${{ steps.fetch_link.outputs.response }}
