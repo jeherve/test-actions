@@ -2,7 +2,7 @@ name: Testing setup-php
 on: push
 jobs:
   test:
-    name: Installing (${{ matrix.php-versions }})
+    name: Installing PHP 5.6.
     runs-on: ubuntu-latest
 
     steps:
