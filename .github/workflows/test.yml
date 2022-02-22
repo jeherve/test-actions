@@ -24,6 +24,8 @@ jobs:
           php-version: ${{ matrix.php-versions }}
           tools: composer
           extensions: mysql, imagick
+        env:
+         update: true # specify true or false
 
       - name: Tool versions
         run: |
