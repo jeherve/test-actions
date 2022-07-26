@@ -28,7 +28,7 @@ const { context, getOctokit } = require('@actions/github');
 			owner: owner.login,
 			repo: name,
 			issue_number: number,
-			labels: ['Just opened'],
+			labels: ['In Progress'],
 		});
 	}
 
