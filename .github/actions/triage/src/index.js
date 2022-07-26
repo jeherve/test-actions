@@ -11,7 +11,7 @@ const { context, github } = require( '@actions/github' );
 	}
 
 	// Get an instance of the Octokit client.
-	const octokit = new github.getOctokit( token );
+	const octokit = github.getOctokit( token );
 
 	// Get info about the event.
 	const { payload: { number, repository: { owner, name } } } = context;
