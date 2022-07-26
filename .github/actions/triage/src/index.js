@@ -1,5 +1,5 @@
 const { setFailed, getInput, debug } = require( '@actions/core' );
-const { context, github } = require( '@actions/github' );
+const { context, getOctokit } = require( '@actions/github' );
 
 ( async function main() {
 	debug( 'Our action is running' );
@@ -11,7 +11,7 @@ const { context, github } = require( '@actions/github' );
 	}
 
 	// Get an instance of the Octokit client.
-	const octokit = github.getOctokit( token );
+	const octokit = getOctokit( token );
 
 	// Get info about the event.
 	const { payload: { number, repository: { owner, name } } } = context;
