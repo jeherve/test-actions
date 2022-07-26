@@ -1,5 +1,5 @@
 name: "Issue Triage"
-description: "Automatically adde labels on newly opened issues"
+description: "Automatically add labels on newly opened issues"
 inputs:
   github_token:
     description: "GitHub access token"

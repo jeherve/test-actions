@@ -1,7 +1,7 @@
 {
   "name": "triage",
   "version": "1.0.0",
-  "description": "A GitHub action to automatically adde labels on newly opened issues.",
+  "description": "A GitHub action to automatically add labels on newly opened issues.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

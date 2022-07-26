@@ -1,5 +1,5 @@
 const { setFailed, getInput, debug } = require( '@actions/core' );
-const { context, getOctokit } = require( '@actions/github' );
+const { context, github } = require( '@actions/github' );
 
 ( async function main() {
 	debug( 'Our action is running' );
@@ -11,12 +11,12 @@ const { context, getOctokit } = require( '@actions/github' );
 	}
 
 	// Get an instance of the Octokit client.
-	const octokit = new getOctokit( token );
+	const octokit = github.getOctokit( token );
 
 	// Get info about the event.
 	const { payload: { number, repository: { owner, name } } } = context;
 
-	await octokit.rest.issues.addLabels( {
+	await octokit.issues.addLabels( {
 		owner: owner.login,
 		repo: name,
 		issue_number: number,

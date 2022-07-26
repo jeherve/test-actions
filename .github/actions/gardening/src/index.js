@@ -12,7 +12,7 @@ const { context, getOctokit } = require('@actions/github');
 	const { payload, eventName } = context;
 
 	// eslint-disable-next-line new-cap
-	const octokit = new getOctokit(token);
+	const octokit = new getOctokit( token );
 
 	debug(`Received event = '${eventName}', action = '${payload.action}'`);
 
