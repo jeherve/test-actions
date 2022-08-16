@@ -7,7 +7,7 @@ concurrency:
 
 jobs:
   lock_files:
-    name: "Lock files are up to date"
+    name: "A test"
     runs-on: ubuntu-latest
     timeout-minutes: 7  # 2021-03-17: Successful runs seem to take 3+ minutes, thanks to pnpm building stuff.
     steps:
