@@ -8,7 +8,7 @@ EXIT=0
 DIR="$(dirname "$FILE")"
 cd "$DIR"
 echo "::group::$FILE - composer install"
-composer install
+pwd
 echo "::endgroup::"
 echo "::group::$FILE - composer update"
 "$BASE/tools/composer-update-monorepo.sh" --root-reqs .
