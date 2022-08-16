@@ -1,4 +1,4 @@
-const { setFailed, getInput, debug } = require( '@actions/core' );
+const { setFailed, getInput, debug, summary } = require( '@actions/core' );
 const { context, getOctokit } = require( '@actions/github' );
 
 /* global WebhookPayloadPullRequest, GitHub */
@@ -29,6 +29,49 @@ function definePriority( severity = '', workaround = '' ) {
 
 	// Fallback.
 	return '';
+}
+
+/**
+ * Handle automatic triage of issues.
+ *
+ * @param {WebhookPayloadPullRequest} payload - The payload from the webhook.
+ * @param {GitHub}                    octokit - Initialized Octokit REST client.
+ * @returns {Promise<Array>} - Array of labels added to the issue.
+ */
+async function triageIssue( payload, octokit ) {
+	// Extra data from the event, to use in API requests.
+	const { issue: { number, body }, repository: { owner, name } } = payload;
+
+	// List of labels to add to the issue.
+	const labels = [ 'Issue triaged' ];
+
+	// Look for priority indicators in body.
+	const priorityRegex = /###\sSeverity\n\n(?<severity>.*)\n\n###\sAvailable\sworkarounds\?\n\n(?<workaround>.*)\n/gm;
+	let match;
+	while ( ( match = priorityRegex.exec( body ) ) ) {
+		const [ , severity = '', workaround = '' ] = match;
+
+		const priorityLabel = definePriority( severity, workaround );
+		if ( priorityLabel !== '' ) {
+			labels.push( priorityLabel );
+		}
+	}
+
+	debug(
+		`Add the following labels to issue #${ number }: ${ labels
+			.map( ( label ) => `"${ label }"` )
+			.join( ', ' ) }`
+	);
+
+	// Finally make the API request.
+	await octokit.rest.issues.addLabels( {
+		owner: owner.login,
+		repo: name,
+		issue_number: number,
+		labels,
+	} );
+
+	return labels;
 }
 
 /**
@@ -73,6 +116,9 @@ async function triagePullRequest( payload, octokit ) {
 ( async function main() {
 	debug( 'Our action is running' );
 
+	// Build a summary that we'll output once our action is done.
+	const actionSummary = {};
+
 	const token = getInput( 'github_token' );
 	if ( ! token ) {
 		setFailed( 'Input `github_token` is required' );
@@ -101,36 +147,20 @@ async function triagePullRequest( payload, octokit ) {
 
 	// We only want to proceed if this is a newly opened issue.
 	if ( eventName === 'issues' && payload.action === 'opened' ) {
-		// Extra data from the event, to use in API requests.
-		const { issue: { number, body }, repository: { owner, name } } = payload;
+		debug( `Triage: now processing an opened issue` );
 
-		// List of labels to add to the issue.
-		const labels = [ 'Issue triaged' ];
-
-		// Look for priority indicators in body.
-		const priorityRegex = /###\sSeverity\n\n(?<severity>.*)\n\n###\sAvailable\sworkarounds\?\n\n(?<workaround>.*)\n/gm;
-		let match;
-		while ( ( match = priorityRegex.exec( body ) ) ) {
-			const [ , severity = '', workaround = '' ] = match;
-
-			const priorityLabel = definePriority( severity, workaround );
-			if ( priorityLabel !== '' ) {
-				labels.push( priorityLabel );
-			}
-		}
-
-		debug(
-			`Add the following labels to issue #${ number }: ${ labels
-				.map( ( label ) => `"${ label }"` )
-				.join( ', ' ) }`
-		);
-
-		// Finally make the API request.
-		await octokit.rest.issues.addLabels( {
-			owner: owner.login,
-			repo: name,
-			issue_number: number,
-			labels,
-		} );
+		const labels = await triageIssue( payload, octokit );
+		actionSummary.labels = labels;
 	}
+
+	// We're done with triage. Print a summary.
+	await summary
+		.addHeading( 'Triage Summary' )
+		.addImage( 'https://user-images.githubusercontent.com/426388/184935052-6fdf49bd-63d9-4a38-bd29-ce4c277b76ea.gif', 'Done triaging' )
+		.addSeparator()
+		.addHeading( 'Labels', 2 )
+		.addRaw( 'The following labels were added to the issue:', true )
+		.addList( actionSummary.labels )
+		.addSeparator()
+		.write();
 } )();
