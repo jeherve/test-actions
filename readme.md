@@ -5,5 +5,3 @@
 ## Text
 
 Some text here and there.
-
-Here too.
