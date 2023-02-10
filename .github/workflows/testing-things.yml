@@ -22,7 +22,7 @@ jobs:
       with:
         result-encoding: string
         script: |
-          return github.context.payload.pull_request.title
+          return github.context.issue.title
 
     - name: Get the context from the previous step.
       env:
