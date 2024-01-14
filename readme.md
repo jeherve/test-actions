@@ -4,4 +4,4 @@
 
 ## Text
 
-Some text here and there.
+Some text here
