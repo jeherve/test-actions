@@ -11,4 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * initial
 
+### Changed
+
+* Something
+
 [0.0.1]: https://github.com/jeherve/test-actions/releases
