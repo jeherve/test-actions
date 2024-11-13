@@ -5,3 +5,7 @@
 ## Text
 
 Some text here and there.
+
+## FAQ
+
+- This is a test repo, not much to see here.
