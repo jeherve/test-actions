@@ -12,62 +12,53 @@ jobs:
   changelog:
     runs-on: ubuntu-latest
     steps:
-      # Allow skipping the changelog if the PR includes the label "Skip Changelog".
-      - name: "Check for Skip Changelog label"
-        id: has-skip-label
+      - name: "Check changelog requirements"
         uses: actions/github-script@v7
         with:
           script: |
-            const { payload : { pull_request : { number, labels } } } = context;
+            const { repo: { owner, repo }, payload : { pull_request : { number, labels } } } = context;
 
+            // Check for Skip Changelog label
             core.debug( 'Changelog check: Check for Skip Changelog label' );
-
             const skipLabel = 'Skip Changelog';
             const prLabels = labels.map( label => label.name );
             const hasSkipLabel = prLabels.includes( skipLabel );
 
             if ( hasSkipLabel ) {
               core.info( `Skipping changelog requirement for this PR (#${ number }) because of the "${ skipLabel }" label.` );
+              return;
             }
-            core.setOutput( 'hasSkipLabel', hasSkipLabel.toString() );
 
-      # Check if the PR includes a new added file in the .github/changelog directory.
-      - name: "Check if the PR includes a new added file in the .github/changelog directory"
-        if: $${{ steps.has-skip-label.outputs.hasSkipLabel == 'false' }}
-        uses: actions/github-script@v7
-        with:
-            script: |
-                const { repo: { owner, repo }, payload : { pull_request : { number } } } = context;
+            // If no skip label, check for changelog file
+            core.debug( `Changelog check: Get list of files modified in ${ owner }/${ repo } #${ number }.` );
 
-                core.debug( `Changelog check: Get list of files modified in ${ owner }/${ repo } #${ number }.` );
-
-                const fileList = [];
-                for await ( const response of github.paginate.iterator( github.rest.pulls.listFiles, {
-                    owner,
-                    repo,
-                    pull_number: +number,
-                    per_page: 100,
-                } ) ) {
-                    for ( const file of response.data ) {
-                        fileList.push( file.filename );
-                        if ( file.previous_filename ) {
-                            fileList.push( file.previous_filename );
-                        }
+            const fileList = [];
+            for await ( const response of github.paginate.iterator( github.rest.pulls.listFiles, {
+                owner,
+                repo,
+                pull_number: +number,
+                per_page: 100,
+            } ) ) {
+                for ( const file of response.data ) {
+                    fileList.push( file.filename );
+                    if ( file.previous_filename ) {
+                        fileList.push( file.previous_filename );
                     }
                 }
+            }
 
-                const hasChangelogFile = fileList.some( file => {
-                    core.debug( `Checking file: ${ file }` );
-                    if ( file.startsWith( '.github/changelog' ) ) {
-                        core.info( `Found changelog file: ${ file }` );
-                        return true;
-                    }
-                    return false;
-                } );
-                
-                if ( hasChangelogFile ) {
-                    core.info( `PR #${ number } includes a changelog file.` );
-                } else {
-                    core.info( `PR #${ number } does not include a changelog file.` );
-                    core.setFailed( 'Your PR does not include a changelog file. Please add a changelog entry by running \`composer changelog:add\`' );
+            const hasChangelogFile = fileList.some( file => {
+                core.debug( `Checking file: ${ file }` );
+                if ( file.startsWith( '.github/changelog' ) ) {
+                    core.info( `Found changelog file: ${ file }` );
+                    return true;
                 }
+                return false;
+            } );
+            
+            if ( hasChangelogFile ) {
+                core.info( `PR #${ number } includes a changelog file.` );
+            } else {
+                core.info( `PR #${ number } does not include a changelog file.` );
+                core.setFailed( 'Your PR does not include a changelog file. Please add a changelog entry by running `composer changelog:add`' );
+            }
