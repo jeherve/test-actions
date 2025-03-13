@@ -106,7 +106,7 @@ jobs:
             // Extract all sections first
             const significanceSection = body.match(/#### Significance[\s\S]*?(?=####|$)/);
             const typeSection = body.match(/#### Type[\s\S]*?(?=####|$)/);
-            const messageSection = body.match(/#### Message(?:\n*)(?<changelogMessage>^.*?)(?=<\/details>|$)/m);
+            const messageSection = body.match(/#### Message(?:\n*)(?<changelogMessage>.*?)(?=<\/details>|$)/m);
 
             // Bail early if any section is missing
             if (!significanceSection || !typeSection || !messageSection) {
