@@ -106,7 +106,14 @@ jobs:
             // Extract all sections first
             const significanceSection = body.match(/#### Significance[\s\S]*?(?=####|$)/);
             const typeSection = body.match(/#### Type[\s\S]*?(?=####|$)/);
-            const messageSection = body.match(/#### Message(?:\n*)(?<changelogMessage>.*?)(?=<\/details>|$)/m);
+            const messageSection = body.match(/#### Message\s*\n+([\s\S]*?)(?=####|<\/details>|$)/);
+
+            // Debug output
+            core.debug(`PR Body: ${body}`);
+            core.debug(`Message Section Match: ${messageSection ? 'Found' : 'Not found'}`);
+            if (messageSection) {
+              core.debug(`Raw Message Content: "${messageSection[1]}"`);
+            }
 
             // Bail early if any section is missing
             if (!significanceSection || !typeSection || !messageSection) {
@@ -131,7 +138,23 @@ jobs:
             const type = typeMatches[0][1].toLowerCase();
 
             // Process message section
-            const changelogMessage = messageSection?.groups?.changelogMessage?.trim() || '';
+            let changelogMessage = '';
+            if (messageSection) {
+              // Get the message and trim whitespace
+              changelogMessage = messageSection[1].trim();
+              
+              // Remove any leading newlines or whitespace
+              changelogMessage = changelogMessage.replace(/^\s*\n+/g, '');
+              
+              // If still empty after trimming, fail
+              if (!changelogMessage) {
+                core.setFailed('Your PR has an empty changelog message. Please provide a meaningful message in the changelog details.');
+                return;
+              }
+            }
+
+            // Debug the final processed message
+            core.debug(`Final processed changelog message: "${changelogMessage}"`);
 
             // All information is available, output it
             core.info(`Extracted changelog information - Significance: ${significance}, Type: ${type}, Message: ${changelogMessage}`);
