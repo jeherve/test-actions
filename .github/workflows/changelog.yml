@@ -202,6 +202,7 @@ jobs:
             const isFromFork = head_repo.full_name === `${owner}/${repo}`;
 
             if ( isFromFork ) {
+              core.info( 'PR is from a fork, so we cannot create the changelog file automatically.' );
               // For forks, we cannot create the file automatically, so we add a helpful comment to the PR,
               // asking the contributor to create the file manually.
               const commentBody = `👋 Thanks for your contribution!
@@ -235,12 +236,14 @@ jobs:
                   }
                 }
                 if ( hasExistingComment ) {
+                  core.info( 'A comment already exists, so we will not add another one.' );
                   break;
                 }
               }
 
               // Only post the comment if we haven't posted one before
               if ( ! hasExistingComment ) {
+                core.info( 'No existing comment found, so we will add a new one.' );
                 await github.rest.issues.createComment( {
                   owner,
                   repo,
