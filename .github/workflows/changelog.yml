@@ -199,7 +199,7 @@ jobs:
             core.info( `Creating changelog file: ${ path }` );
 
             // Check if PR is from a fork
-            const isFromFork = head_repo.full_name === `${owner}/${repo}`;
+            const isFromFork = head_repo.full_name !== `${owner}/${repo}`;
 
             if ( isFromFork ) {
               core.info( 'PR is from a fork, so we cannot create the changelog file automatically.' );
