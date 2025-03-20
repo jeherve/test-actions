@@ -199,10 +199,11 @@ jobs:
             core.info( `Creating changelog file: ${ path }` );
 
             // Check if PR is from a fork
-            const isFromFork = head_repo.full_name !== `${owner}/${repo}`;
+            const isFromFork = head_repo.full_name === `${owner}/${repo}`;
 
             if ( isFromFork ) {
-              // For forks, add a helpful comment to the PR
+              // For forks, we cannot create the file automatically, so we add a helpful comment to the PR,
+              // asking the contributor to create the file manually.
               const commentBody = `👋 Thanks for your contribution!
 
               I see you have provided all the required changelog information in your PR description. To complete the process, you'll need to create a changelog file in your branch.
@@ -219,12 +220,34 @@ jobs:
 
               Once you've committed and pushed the file to your PR branch, the checks will pass automatically.`;
 
-              await github.rest.issues.createComment( {
+              // Check for existing comments first
+              let hasExistingComment = false;
+              for await ( const response of github.paginate.iterator( github.rest.issues.listComments, {
                 owner,
                 repo,
-                issue_number: number,
-                body: commentBody
-              } );
+                issue_number: +number,
+                per_page: 100,
+              } ) ) {
+                for ( const comment of response.data ) {
+                  if ( comment.body.includes('👋 Thanks for your contribution!') ) {
+                    hasExistingComment = true;
+                    break;
+                  }
+                }
+                if ( hasExistingComment ) {
+                  break;
+                }
+              }
+
+              // Only post the comment if we haven't posted one before
+              if ( ! hasExistingComment ) {
+                await github.rest.issues.createComment( {
+                  owner,
+                  repo,
+                  issue_number: number,
+                  body: commentBody
+                } );
+              }
               return;
             }
 
