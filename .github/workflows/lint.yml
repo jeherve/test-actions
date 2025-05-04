@@ -1,0 +1,15 @@
+name: Linting
+
+on: pull_request
+concurrency:
+  group: linting-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lock_files:
+    name: "A test"
+    runs-on: ubuntu-latest
+    timeout-minutes: 7  # 2021-03-17: Successful runs seem to take 3+ minutes, thanks to pnpm building stuff.
+    steps:
+      - uses: actions/checkout@v3
+      - run: .github/files/test.sh
